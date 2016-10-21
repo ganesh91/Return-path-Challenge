@@ -1,0 +1,39 @@
+---
+title: "Return Path - R Model"
+output: html_document
+date: "October 21, 2016"
+---
+
+The R Model builds on the test and train files from the Python data pipeline.
+A Random Forest model is trained with 500 trees and a depth of 3.
+
+Ideally, a cross valdiation should be done, however the initial model seems to work with good accuracy.
+
+Following is the code.
+
+```{r}
+library(randomForest)
+## Build a Random Forrest Model
+setwd("C:/Users/gnagaraj/Downloads")
+
+#Prepare the Test and Train Datasets
+train_df=read.csv("Train_split.csv",colClasses = c("Discretized_Read_Rate"="factor"))
+test_df=read.csv("Test_split.csv",colClasses = c("Discretized_Read_Rate"="factor"))
+
+#Drop unwanted columns
+train_df <- subset(train_df,select = -c(X,id,read_rate))
+test_df <- subset(test_df,select = -c(X,id,read_rate))
+
+#Train a Random Forrest Model with 500 trees and depth of 3
+rf <- randomForest(Discretized_Read_Rate ~ .,data = train_df)
+
+#Predict the test data
+predictions<-predict(rf,subset(test_df,select = -c(Discretized_Read_Rate)))
+
+#Calculate the Confusion Matrix
+cm<-table(as.numeric(unlist(test_df['Discretized_Read_Rate'])),as.numeric(predictions))
+print(cm)
+
+#Print the Accuracy
+print(c("Accuracy",sum(diag(cm)/sum(cm))))
+```
